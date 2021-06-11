@@ -1,6 +1,9 @@
 <?if(!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED!==true) die();
 use Bitrix\Main\Page\Asset;
 
+if($arParams['WIDTH_CROP'] == 'Y') $width_crop = true;
+if($arParams['HEIGHT_CROP'] == 'Y') $height_crop = true;
+
 if (!$arParams['MASK_URL']) {
 	$arMessages[] = array( 'TYPE' => 'ERROR', 'MESSAGE' => 'Не задана маска для изображения');
 }
@@ -33,6 +36,8 @@ else {
 		$arParams['DESK_TEXT'] = $this->getDecriptionFromDir($arParams['PICTURES_SECT_URL']);
 	}
 
+	if(!is_array($arParams['DESK_TEXT'])) $arParams['DESK_TEXT'] = array();
+
 	if(!is_array($arMessages) && is_array($arParams['PICTURES_BASE_URL'])) {
 		
 		foreach ($arParams['PICTURES_BASE_URL'] as $cnt => $Picture) {
@@ -48,7 +53,7 @@ else {
 				}			
 				else {
 
-					$CurImgData['SM'] = $this->createPreview($CurImgData, $arResult['MASK'], $arParams['NO_CROP']);
+					$CurImgData['SM'] = $this->createPreview($CurImgData, $arResult['MASK'], $arParams['NO_CROP'], $width_crop, $height_crop);
 
 					if ($arParams['ADD_MASK_TO_BIGPICTURE'] == 'Y'  &&  $arResult['BIG_MASK']) {
 
@@ -72,13 +77,27 @@ else {
 	}
 }
 
+$arResult['COUNT_IMAGES'] = count($arResult['IMAGES']);
+
 if(is_array($arMessages)) {
 	foreach ($arMessages as $mes) echo ShowMessage($mes);
 }
 
-$path = $this->GetPath().'/';
+//$path = $this->GetPath().'/';
 
-Asset::getInstance()->addJs($path.'jquery.fancybox.min.js');
-Asset::getInstance()->addCss($path.'jquery.fancybox.css');
+//Asset::getInstance()->addJs($path.'jquery.fancybox.min.js');
+//Asset::getInstance()->addCss($path.'jquery.fancybox.css');
+
+
+if($arParams['LIST_COUNT']) {
+
+	$page = ($_GET['PAGE']) ? $_GET['PAGE'] - 1 : 0;
+	$cnt = $arParams['LIST_COUNT'];
+	$start = $cnt*$page;
+
+	$arResult['IMAGES'] = array_slice($arResult['IMAGES'], $start, $cnt);
+
+}
+
 
 $this->IncludeComponentTemplate();?>
